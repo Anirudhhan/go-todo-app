@@ -1,7 +1,5 @@
-version: "3.3"
 services:
   db:
-    image: "postgres:13"
     ports:
       - "5432:5432"
     volumes:
@@ -9,4 +7,3 @@ services:
     environment:
       - POSTGRES_USER=local
       - POSTGRES_PASSWORD=local
-      - POSTGRES_DB=todo
