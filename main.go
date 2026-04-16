@@ -2,7 +2,7 @@ package main
 
 import (
 	"todo-app/database"
-	"todo-app/server"
+	"todo-app/routes"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 		database.SSLMode(database.SSLModeDisable),
 	)
 
-	srv := server.SetUpRoutes()
+	srv := routes.SetUpRoutes()
 
 	srv.Run()
 

@@ -13,6 +13,18 @@ func IsUserExists(email string) (bool, error) {
 	return exists, err
 }
 
+func IsUserIDValid(userID string) (bool, error) {
+	query := `SELECT EXISTS (
+			SELECT 1 FROM users 
+			WHERE id = $1 AND archived_at IS NULL
+		)`
+
+	var valid bool
+	err := database.DB.Get(&valid, query, userID)
+
+	return valid, err
+}
+
 func RegisterUser(name string, email string, passwordHash string) (string, error) {
 	query := `INSERT INTO users(name, email, password) VALUES ($1, TRIM(LOWER($2)), $3) RETURNING id`
 

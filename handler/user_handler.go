@@ -2,8 +2,8 @@ package handler
 
 import (
 	"net/http"
+	"todo-app/database/dbHelper"
 	"todo-app/models"
-	"todo-app/service"
 	"todo-app/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,9 +17,9 @@ func RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	exists, err := service.IsUserExists(newUser.Email)
+	exists, err := dbHelper.IsUserExists(newUser.Email)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
 		return
 	}
 
@@ -30,13 +30,13 @@ func RegisterUser(ctx *gin.Context) {
 
 	hashedPassword, err := utils.HashPassword(newUser.Password)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
 		return
 	}
 
-	id, err := service.RegisterUser(newUser.Name, newUser.Email, hashedPassword)
+	id, err := dbHelper.RegisterUser(newUser.Name, newUser.Email, hashedPassword)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
 		return
 	}
 
@@ -54,7 +54,7 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	userId, hashPassword, err := service.GetUserIDByEmail(loginUser.Email)
+	userId, hashPassword, err := dbHelper.GetUserIDByEmail(loginUser.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid credentials")
 		return
@@ -65,7 +65,7 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	sessionId, SessionErr := service.CreateUserSession(userId)
+	sessionId, SessionErr := dbHelper.CreateUserSession(userId)
 	if SessionErr != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal error")
 		return
@@ -79,7 +79,7 @@ func LoginUser(ctx *gin.Context) {
 func Logout(ctx *gin.Context) {
 	sessionId := ctx.Param("sessionId")
 
-	active, err := service.IsSessionActive(sessionId)
+	active, err := dbHelper.IsSessionActive(sessionId)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid session")
 		return
@@ -90,7 +90,7 @@ func Logout(ctx *gin.Context) {
 		return
 	}
 
-	err = service.ArchiveUserSession(sessionId)
+	err = dbHelper.ArchiveUserSession(sessionId)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid session")
 		return
