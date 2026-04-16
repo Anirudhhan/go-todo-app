@@ -1,6 +1,9 @@
 package main
 
-import "todo-app/database"
+import (
+	"todo-app/database"
+	"todo-app/server"
+)
 
 func main() {
 
@@ -12,6 +15,10 @@ func main() {
 		"local",
 		database.SSLMode(database.SSLModeDisable),
 	)
+
+	srv := server.SetUpRoutes()
+
+	srv.Run()
 
 	if err != nil {
 		panic(err)
