@@ -1,6 +1,9 @@
 package dbHelper
 
-import "todo-app/database"
+import (
+	"time"
+	"todo-app/database"
+)
 
 func IsUserExists(email string) (bool, error) {
 	query := `SELECT count(*) > 0 FROM users WHERE email = TRIM(LOWER($1)) AND archived_at IS NULL;`
@@ -40,4 +43,23 @@ func GetUserIDByEmail(email string) (string, string, error) {
 
 	err := database.DB.QueryRow(query, email).Scan(&userID, &passwordHash)
 	return userID, passwordHash, err
+}
+
+func ArchiveUserSession(sessionId string) error {
+	query := `UPDATE user_session SET archived_at = NOW() WHERE id = $1 AND archived_at IS NULL`
+
+	_, err := database.DB.Exec(query, sessionId)
+	return err
+}
+
+func IsSessionActive(sessionID string) (bool, error) {
+	query := `SELECT archived_at FROM user_session WHERE id = $1`
+
+	var archivedAt *time.Time
+	err := database.DB.Get(&archivedAt, query, sessionID)
+
+	if err != nil {
+		return false, err
+	}
+	return archivedAt == nil, err
 }

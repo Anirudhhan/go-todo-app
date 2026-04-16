@@ -75,3 +75,28 @@ func LoginUser(ctx *gin.Context) {
 		"sessionId": sessionId,
 	})
 }
+
+func Logout(ctx *gin.Context) {
+	sessionId := ctx.Param("sessionId")
+
+	active, err := service.IsSessionActive(sessionId)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid session")
+		return
+	}
+
+	if !active {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "user already logged out")
+		return
+	}
+
+	err = service.ArchiveUserSession(sessionId)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid session")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "user logged out successfully",
+	})
+}

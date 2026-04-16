@@ -17,3 +17,11 @@ func CreateUserSession(userId string) (string, error) {
 func GetUserIDByEmail(email string) (string, string, error) {
 	return dbHelper.GetUserIDByEmail(email)
 }
+
+func ArchiveUserSession(sessionId string) error {
+	return dbHelper.ArchiveUserSession(sessionId)
+}
+
+func IsSessionActive(sessionID string) (bool, error) {
+	return dbHelper.IsSessionActive(sessionID)
+}
