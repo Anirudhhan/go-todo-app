@@ -22,7 +22,11 @@ func SetUpRoutes() *gin.Engine {
 		v1.PATCH("/logout", handler.Logout) //TODO: patch, put or delete?
 	}
 	{
-		v1.POST("/todo", handler.CreateTodo)
+		todo := v1.Group("/todo")
+		{
+			todo.POST("/", handler.CreateTodo)
+			todo.PUT("/:todoID", handler.UpdateTodo)
+		}
 	}
 
 	return routes

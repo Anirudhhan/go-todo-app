@@ -50,3 +50,61 @@ func CreateTodo(ctx *gin.Context) {
 		"todoId":  todoID,
 	})
 }
+
+func UpdateTodo(ctx *gin.Context) {
+	var updatedTodo models.UpdateTodo
+
+	todoID := ctx.Param("todoID")
+
+	sessionID := ctx.GetHeader("session_id")
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	if err := ctx.ShouldBindJSON(&updatedTodo); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userID, err := dbHelper.GetUserIDFromSession(sessionID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	todo, err := dbHelper.GetTodoByID(todoID, userID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+		return
+	}
+
+	if updatedTodo.Name != "" {
+		todo.Name = updatedTodo.Name
+	}
+
+	if updatedTodo.Description != "" {
+		todo.Description = updatedTodo.Description
+	}
+
+	if updatedTodo.PendingAt != nil {
+		if updatedTodo.PendingAt.Before(time.Now()) {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid deadline")
+			return
+		}
+		todo.PendingAt = updatedTodo.PendingAt
+	}
+
+	if updatedTodo.CompletedAt != nil {
+		todo.CompletedAt = updatedTodo.CompletedAt
+	}
+
+	if err := dbHelper.UpdateTodo(todoID, userID, todo); err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "todo updated successfully",
+	})
+}
