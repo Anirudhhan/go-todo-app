@@ -13,16 +13,20 @@ func IsUserExists(email string) (bool, error) {
 	return exists, err
 }
 
-func IsUserIDValid(userID string) (bool, error) {
-	query := `SELECT EXISTS (
-			SELECT 1 FROM users 
-			WHERE id = $1 AND archived_at IS NULL
-		)`
+func GetUserIDFromSession(sessionID string) (string, error) {
+	query := `
+		SELECT user_id 
+		FROM user_session 
+		WHERE id = $1 AND archived_at IS NULL
+	`
 
-	var valid bool
-	err := database.DB.Get(&valid, query, userID)
+	var userID string
+	err := database.DB.Get(&userID, query, sessionID)
+	if err != nil {
+		return "", err
+	}
 
-	return valid, err
+	return userID, nil
 }
 
 func RegisterUser(name string, email string, passwordHash string) (string, error) {

@@ -19,7 +19,7 @@ func SetUpRoutes() *gin.Engine {
 		})
 		v1.POST("/register", handler.RegisterUser)
 		v1.GET("/login", handler.LoginUser)
-		v1.PATCH("/logout/:sessionId", handler.Logout) //TODO: patch, edit or delete?
+		v1.PATCH("/logout", handler.Logout) //TODO: patch, edit or delete?
 	}
 	{
 		v1.POST("/todo/:userId", handler.CreateTodo)

@@ -26,7 +26,7 @@ func ConnectAndMigrate(host, port, dbName, user, password string, sslMode SSLMod
 		host, port, dbName, user, password, sslMode,
 	)
 
-	db, err := sqlx.Open("postgres", connectionStr)
+	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
 		return err
 	}

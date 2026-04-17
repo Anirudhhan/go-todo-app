@@ -18,3 +18,10 @@ type CreateTodo struct {
 	Description string     `db:"description" json:"description" binding:"required"`
 	PendingAt   *time.Time `db:"pending_at" json:"pending_at" binding:"required"`
 }
+
+type UpdateTodo struct {
+	Name        string     `db:"name" json:"name"`
+	Description string     `db:"description" json:"description"`
+	PendingAt   *time.Time `db:"pending_at" json:"pending_at"`
+	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
+}

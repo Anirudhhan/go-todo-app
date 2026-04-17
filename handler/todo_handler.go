@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 	"todo-app/database/dbHelper"
 	"todo-app/models"
 	"todo-app/utils"
@@ -10,30 +11,42 @@ import (
 )
 
 func CreateTodo(ctx *gin.Context) {
-	userId := ctx.Param("userId")
+	sessionID := ctx.Param("session_id")
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
 	var createTodo models.CreateTodo
-
-	if bindErr := ctx.ShouldBindJSON(&createTodo); bindErr != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, bindErr.Error())
+	if err := ctx.ShouldBindJSON(&createTodo); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	valid, err := dbHelper.IsUserIDValid(userId)
-	if !valid || err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "userid doesn't exist",
-		})
-		return
-	}
-
-	todoId, err := dbHelper.CreateTodo(userId, createTodo.Name, createTodo.Description, createTodo.PendingAt)
+	userID, err := dbHelper.GetUserIDFromSession(sessionID)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	if createTodo.PendingAt != nil && createTodo.PendingAt.Before(time.Now()) {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "previous date cannot be inserted")
+		return
+	}
+
+	todoID, err := dbHelper.CreateTodo(
+		userID,
+		createTodo.Name,
+		createTodo.Description,
+		createTodo.PendingAt,
+	)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "new todo created successfully",
-		"todoId":  todoId,
+		"todoId":  todoID,
 	})
 }

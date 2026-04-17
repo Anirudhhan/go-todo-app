@@ -77,7 +77,11 @@ func LoginUser(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
-	sessionId := ctx.Param("sessionId")
+	sessionId := ctx.GetHeader("session_id")
+	if sessionId == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid session")
+		return
+	}
 
 	active, err := dbHelper.IsSessionActive(sessionId)
 	if err != nil {
