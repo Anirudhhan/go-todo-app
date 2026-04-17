@@ -14,7 +14,7 @@ type Todo struct {
 }
 
 type CreateTodo struct {
-	Name        string     `db:"name" json:"name"`
-	Description string     `db:"description" json:"description"`
-	PendingAt   *time.Time `db:"pending_at" json:"pending_at"`
+	Name        string     `db:"name" json:"name" binding:"required"`
+	Description string     `db:"description" json:"description" binding:"required"`
+	PendingAt   *time.Time `db:"pending_at" json:"pending_at" binding:"required"`
 }

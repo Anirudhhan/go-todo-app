@@ -18,6 +18,6 @@ type RegisterUser struct {
 }
 
 type LoginUser struct {
-	Email    string `db:"email" json:"email"`
-	Password string `db:"password" json:"password"`
+	Email    string `db:"email" json:"email" binding:"required"`
+	Password string `db:"password" json:"password" binding:"required"`
 }

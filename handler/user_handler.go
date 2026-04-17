@@ -19,7 +19,7 @@ func RegisterUser(ctx *gin.Context) {
 
 	exists, err := dbHelper.IsUserExists(newUser.Email)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
@@ -30,13 +30,13 @@ func RegisterUser(ctx *gin.Context) {
 
 	hashedPassword, err := utils.HashPassword(newUser.Password)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	id, err := dbHelper.RegisterUser(newUser.Name, newUser.Email, hashedPassword)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal routes error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
@@ -67,7 +67,7 @@ func LoginUser(ctx *gin.Context) {
 
 	sessionId, SessionErr := dbHelper.CreateUserSession(userId)
 	if SessionErr != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
