@@ -36,3 +36,21 @@ func UpdateTodo(todoID string, userID string, updatedTodo models.Todo) error {
 	_, err := database.DB.Exec(query, updatedTodo.Name, updatedTodo.Description, updatedTodo.PendingAt, updatedTodo.CompletedAt, todoID, userID)
 	return err
 }
+
+func DeleteTodo(todoID string, userID string) error {
+	query := `UPDATE todo SET archived_at = NOW() WHERE id = $1 AND user_id = $2 AND archived_at IS NULL`
+
+	_, err := database.DB.Exec(query, todoID, userID)
+	return err
+}
+
+func IsTodoValid(todoID string, userID string) (bool, error) {
+	query := `SELECT EXISTS (
+			SELECT 1 FROM todo 
+			WHERE id = $1 AND user_id = $2 AND archived_at IS NULL)`
+
+	var exists bool
+	err := database.DB.Get(&exists, query, todoID, userID)
+
+	return exists, err
+}

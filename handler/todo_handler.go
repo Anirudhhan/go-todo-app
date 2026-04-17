@@ -73,9 +73,20 @@ func UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
+	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	if !todoValid {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+		return
+	}
+
 	todo, err := dbHelper.GetTodoByID(todoID, userID)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+		utils.ErrorResponse(ctx, http.StatusNotFound, "internal server error")
 		return
 	}
 
@@ -106,5 +117,42 @@ func UpdateTodo(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "todo updated successfully",
+	})
+}
+
+func DeleteTodo(ctx *gin.Context) {
+	todoID := ctx.Param("todoID")
+	sessionID := ctx.GetHeader("session_id")
+
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	userID, err := dbHelper.GetUserIDFromSession(sessionID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	if !todoValid {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+		return
+	}
+
+	err = dbHelper.DeleteTodo(todoID, userID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "todo delete successfully",
 	})
 }

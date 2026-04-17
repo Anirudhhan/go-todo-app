@@ -26,6 +26,7 @@ func SetUpRoutes() *gin.Engine {
 		{
 			todo.POST("/", handler.CreateTodo)
 			todo.PUT("/:todoID", handler.UpdateTodo)
+			todo.DELETE("/:todoID", handler.DeleteTodo)
 		}
 	}
 
