@@ -11,7 +11,7 @@ import (
 )
 
 func CreateTodo(ctx *gin.Context) {
-	sessionID := ctx.Param("session_id")
+	sessionID := ctx.GetHeader("session_id")
 	if sessionID == "" {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return

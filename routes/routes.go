@@ -14,15 +14,15 @@ func SetUpRoutes() *gin.Engine {
 	{
 		v1.GET("/health", func(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, gin.H{
-				"message": "routes is running",
+				"message": "server is running",
 			})
 		})
 		v1.POST("/register", handler.RegisterUser)
-		v1.GET("/login", handler.LoginUser)
-		v1.PATCH("/logout", handler.Logout) //TODO: patch, edit or delete?
+		v1.POST("/login", handler.LoginUser)
+		v1.PATCH("/logout", handler.Logout) //TODO: patch, put or delete?
 	}
 	{
-		v1.POST("/todo/:userId", handler.CreateTodo)
+		v1.POST("/todo", handler.CreateTodo)
 	}
 
 	return routes
