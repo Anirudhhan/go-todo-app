@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 	"todo-app/database/dbHelper"
@@ -23,7 +24,7 @@ func CreateTodo(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := dbHelper.GetUserIDFromSession(sessionID)
+	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
@@ -67,7 +68,7 @@ func UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := dbHelper.GetUserIDFromSession(sessionID)
+	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
@@ -129,7 +130,7 @@ func DeleteTodo(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := dbHelper.GetUserIDFromSession(sessionID)
+	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
@@ -155,4 +156,80 @@ func DeleteTodo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "todo delete successfully",
 	})
+}
+
+func GetTodoByID(ctx *gin.Context) {
+	todoID := ctx.Param("todoID")
+	sessionID := ctx.GetHeader("session_id")
+
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
+	if err != nil {
+		fmt.Println("THIS")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	if !todoValid {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+		return
+	}
+
+	todo, err := dbHelper.GetTodoByID(todoID, userID)
+	if err != nil {
+		fmt.Println("NO THIS")
+
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, todo)
+}
+
+func GetAllTodos(ctx *gin.Context) {
+	sessionID := ctx.GetHeader("session_id")
+	status := ctx.Query("status")
+
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
+		return
+	}
+
+	var todos []models.Todo
+
+	if status == "" {
+		todos, err = dbHelper.GetAllTodos(userID)
+	} else if status == "completed" {
+		todos, err = dbHelper.GetAllCompletedTodos(userID)
+	} else if status == "pending" {
+		todos, err = dbHelper.GetAllPendingTodos(userID)
+	} else if status == "incomplete" {
+		todos, err = dbHelper.GetAllInCompleteTodos(userID)
+	} else {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid status")
+		return
+	}
+
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, todos)
 }

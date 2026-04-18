@@ -13,7 +13,7 @@ func IsUserExists(email string) (bool, error) {
 	return exists, err
 }
 
-func GetUserIDFromSession(sessionID string) (string, error) {
+func GetUserIDFromActiveSession(sessionID string) (string, error) {
 	query := `
 		SELECT user_id 
 		FROM user_session 
