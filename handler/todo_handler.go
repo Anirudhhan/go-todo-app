@@ -91,34 +91,7 @@ func UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
-	todo, err := dbHelper.GetTodoByID(todoID, userID)
-	if err != nil {
-		fmt.Println(err.Error())
-		utils.ErrorResponse(ctx, http.StatusNotFound, "internal server error")
-		return
-	}
-
-	if updatedTodo.Name != "" {
-		todo.Name = updatedTodo.Name
-	}
-
-	if updatedTodo.Description != "" {
-		todo.Description = updatedTodo.Description
-	}
-
-	if updatedTodo.PendingAt != nil {
-		if updatedTodo.PendingAt.Before(time.Now()) {
-			utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid deadline")
-			return
-		}
-		todo.PendingAt = updatedTodo.PendingAt
-	}
-
-	if updatedTodo.CompletedAt != nil {
-		todo.CompletedAt = updatedTodo.CompletedAt
-	}
-
-	if err := dbHelper.UpdateTodo(todoID, userID, todo); err != nil {
+	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodo); err != nil {
 		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return

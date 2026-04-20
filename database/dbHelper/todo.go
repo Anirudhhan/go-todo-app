@@ -28,8 +28,12 @@ func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 	return todo, err
 }
 
-func UpdateTodo(todoID string, userID string, updatedTodo models.Todo) error {
-	query := `UPDATE todo SET name = $1, description = $2, pending_at = $3, completed_at = $4 WHERE id = $5 AND user_id = $6 AND archived_at IS NULL`
+func UpdateTodo(todoID string, userID string, updatedTodo models.UpdateTodo) error {
+	query := `
+		UPDATE todo
+		SET name = COALESCE($1, name), description = COALESCE($2, description), pending_at = COALESCE($3, pending_at), completed_at = COALESCE($4, completed_at)
+		WHERE id = $5 AND user_id = $6 AND archived_at IS NULL
+	`
 
 	_, err := database.DB.Exec(query, updatedTodo.Name, updatedTodo.Description, updatedTodo.PendingAt, updatedTodo.CompletedAt, todoID, userID)
 	return err
@@ -65,7 +69,7 @@ func GetAllTodos(userID string, status string) ([]models.Todo, error) {
 	case "pending":
 		query += ` AND completed_at IS NULL AND (pending_at IS NULL OR pending_at > NOW())`
 
-	case "overdue":
+	case "incomplete":
 		query += ` AND completed_at IS NULL AND pending_at IS NOT NULL AND pending_at < NOW()`
 	}
 
@@ -88,7 +92,7 @@ func GetAllTodos(userID string, status string) ([]models.Todo, error) {
 //
 //	return todos, err
 //}
-
+//
 //func GetAllCompletedTodos(userID string) ([]models.Todo, error) {
 //	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
 //				FROM todo
