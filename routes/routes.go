@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"todo-app/handler"
+	"todo-app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,10 +20,11 @@ func SetUpRoutes() *gin.Engine {
 		})
 		v1.POST("/register", handler.RegisterUser)
 		v1.POST("/login", handler.LoginUser)
-		v1.PATCH("/logout", handler.Logout) //TODO: patch, put or delete?
+		v1.PUT("/logout", handler.Logout) //TODO: patch, put or delete?
 	}
 	{
 		todo := v1.Group("/todo")
+		todo.Use(middleware.AuthMiddleware())
 		{
 			todo.POST("/", handler.CreateTodo)
 			todo.GET("/", handler.GetAllTodos)
