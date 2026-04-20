@@ -20,12 +20,14 @@ func CreateTodo(ctx *gin.Context) {
 
 	var createTodo models.CreateTodo
 	if err := ctx.ShouldBindJSON(&createTodo); err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
 	}
@@ -42,6 +44,7 @@ func CreateTodo(ctx *gin.Context) {
 		createTodo.PendingAt,
 	)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -64,18 +67,21 @@ func UpdateTodo(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBindJSON(&updatedTodo); err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
 	}
 
 	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -87,6 +93,7 @@ func UpdateTodo(ctx *gin.Context) {
 
 	todo, err := dbHelper.GetTodoByID(todoID, userID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusNotFound, "internal server error")
 		return
 	}
@@ -112,6 +119,7 @@ func UpdateTodo(ctx *gin.Context) {
 	}
 
 	if err := dbHelper.UpdateTodo(todoID, userID, todo); err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -132,12 +140,14 @@ func DeleteTodo(ctx *gin.Context) {
 
 	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
 	}
 
 	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -149,6 +159,7 @@ func DeleteTodo(ctx *gin.Context) {
 
 	err = dbHelper.DeleteTodo(todoID, userID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -169,13 +180,14 @@ func GetTodoByID(ctx *gin.Context) {
 
 	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
 	}
 
 	todoValid, err := dbHelper.IsTodoValid(todoID, userID)
 	if err != nil {
-		fmt.Println("THIS")
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -187,8 +199,7 @@ func GetTodoByID(ctx *gin.Context) {
 
 	todo, err := dbHelper.GetTodoByID(todoID, userID)
 	if err != nil {
-		fmt.Println("NO THIS")
-
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -207,26 +218,21 @@ func GetAllTodos(ctx *gin.Context) {
 
 	userID, err := dbHelper.GetUserIDFromActiveSession(sessionID)
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "invalid session")
 		return
 	}
 
 	var todos []models.Todo
-
-	if status == "" {
-		todos, err = dbHelper.GetAllTodos(userID)
-	} else if status == "completed" {
-		todos, err = dbHelper.GetAllCompletedTodos(userID)
-	} else if status == "pending" {
-		todos, err = dbHelper.GetAllPendingTodos(userID)
-	} else if status == "incomplete" {
-		todos, err = dbHelper.GetAllInCompleteTodos(userID)
-	} else {
+	if status != "completed" && status != "pending" && status != "incomplete" {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid status")
 		return
 	}
 
+	todos, err = dbHelper.GetAllTodos(userID, status)
+
 	if err != nil {
+		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}

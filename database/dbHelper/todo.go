@@ -29,9 +29,7 @@ func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 }
 
 func UpdateTodo(todoID string, userID string, updatedTodo models.Todo) error {
-	query := `UPDATE todo 
-		SET name = $1, description = $2, pending_at = $3, completed_at = $4
-		WHERE id = $5 AND user_id = $6 AND archived_at IS NULL`
+	query := `UPDATE todo SET name = $1, description = $2, pending_at = $3, completed_at = $4 WHERE id = $5 AND user_id = $6 AND archived_at IS NULL`
 
 	_, err := database.DB.Exec(query, updatedTodo.Name, updatedTodo.Description, updatedTodo.PendingAt, updatedTodo.CompletedAt, todoID, userID)
 	return err
@@ -55,32 +53,23 @@ func IsTodoValid(todoID string, userID string) (bool, error) {
 	return exists, err
 }
 
-func GetAllTodos(userID string) ([]models.Todo, error) {
+func GetAllTodos(userID string, status string) ([]models.Todo, error) {
 	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
 				FROM todo
 				WHERE user_id = $1 AND archived_at IS NULL`
 
-	var todos []models.Todo
-	err := database.DB.Select(&todos, query, userID)
+	switch status {
+	case "completed":
+		query += " AND completed_at IS NOT NULL"
 
-	return todos, err
-}
+	case "pending":
+		query += ` AND completed_at IS NULL AND (pending_at IS NULL OR pending_at > NOW())`
 
-func GetAllCompletedTodos(userID string) ([]models.Todo, error) {
-	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
-				FROM todo
-				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NOT NULL`
+	case "overdue":
+		query += ` AND completed_at IS NULL AND pending_at IS NOT NULL AND pending_at < NOW()`
+	}
 
-	var todos []models.Todo
-	err := database.DB.Select(&todos, query, userID)
-
-	return todos, err
-}
-
-func GetAllPendingTodos(userID string) ([]models.Todo, error) {
-	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
-				FROM todo
-				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NULL AND pending_at > NOW()`
+	query += " ORDER BY created_at DESC"
 
 	var todos []models.Todo
 	err := database.DB.Select(&todos, query, userID)
@@ -88,13 +77,47 @@ func GetAllPendingTodos(userID string) ([]models.Todo, error) {
 	return todos, err
 }
 
-func GetAllInCompleteTodos(userID string) ([]models.Todo, error) {
-	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
-				FROM todo
-				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NULL AND pending_at < NOW()`
+//func GetTodosByDateRange(userID string, startingDate time.Time, endingDate time.Time) ([]models.Todo, error) {
+//
+//	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
+//			FROM todo
+//			WHERE user_id = $1 AND archived_at IS NULL AND created_at >= $2 AND created_at <= $3 ORDER BY created_at DESC`
+//
+//	var todos []models.Todo
+//	err := database.DB.Select(&todos, query, userID, startingDate, endingDate)
+//
+//	return todos, err
+//}
 
-	var todos []models.Todo
-	err := database.DB.Select(&todos, query, userID)
-
-	return todos, err
-}
+//func GetAllCompletedTodos(userID string) ([]models.Todo, error) {
+//	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
+//				FROM todo
+//				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NOT NULL ORDER BY created_at DESC`
+//
+//	var todos []models.Todo
+//	err := database.DB.Select(&todos, query, userID)
+//
+//	return todos, err
+//}
+//
+//func GetAllPendingTodos(userID string) ([]models.Todo, error) {
+//	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
+//				FROM todo
+//				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NULL AND pending_at > NOW() ORDER BY created_at DESC`
+//
+//	var todos []models.Todo
+//	err := database.DB.Select(&todos, query, userID)
+//
+//	return todos, err
+//}
+//
+//func GetAllInCompleteTodos(userID string) ([]models.Todo, error) {
+//	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
+//				FROM todo
+//				WHERE user_id = $1 AND archived_at IS NULL AND completed_at IS NULL AND pending_at < NOW() ORDER BY created_at DESC`
+//
+//	var todos []models.Todo
+//	err := database.DB.Select(&todos, query, userID)
+//
+//	return todos, err
+//}
