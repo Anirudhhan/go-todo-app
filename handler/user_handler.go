@@ -78,19 +78,10 @@ func LoginUser(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
-	sessionID := ctx.GetHeader("session_id")
-	if sessionID == "" {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("invalid session"), "invalid session")
-		return
-	}
+	sessionID := ctx.GetString("sessionID")
 
 	err := dbHelper.ArchiveUserSession(sessionID)
 	if err != nil {
-		if err.Error() == "session inactive" {
-			utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "session inactive")
-			return
-		}
-
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to logout user")
 		return
 	}

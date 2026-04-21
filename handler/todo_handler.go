@@ -53,6 +53,11 @@ func UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
+	if updatedTodo.PendingAt != nil && updatedTodo.PendingAt.Before(time.Now()) {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
+		return
+	}
+
 	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodo); err != nil {
 		if err.Error() == "todo not found" {
 			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
@@ -99,7 +104,7 @@ func GetTodoByID(ctx *gin.Context) {
 			return
 		}
 
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to fetch todo")
 		return
 	}
 

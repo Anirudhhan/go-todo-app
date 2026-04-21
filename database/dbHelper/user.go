@@ -1,7 +1,6 @@
 package dbHelper
 
 import (
-	"errors"
 	"todo-app/database"
 )
 
@@ -61,21 +60,8 @@ func GetUserIDAndHashedPassByEmail(email string) (string, string, error) {
 func ArchiveUserSession(sessionID string) error {
 	query := `UPDATE user_session SET archived_at = NOW() WHERE id = $1 AND archived_at IS NULL`
 
-	res, err := database.DB.Exec(query, sessionID)
-	if err != nil {
-		return err
-	}
-
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rows == 0 {
-		return errors.New("session inactive")
-	}
-
-	return nil
+	_, err := database.DB.Exec(query, sessionID)
+	return err
 }
 
 //func IsSessionActive(sessionID string) (bool, error) {

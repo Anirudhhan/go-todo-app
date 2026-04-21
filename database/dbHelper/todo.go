@@ -39,7 +39,10 @@ func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 
 func UpdateTodo(todoID string, userID string, updatedTodo models.UpdateTodo) error {
 	query := `UPDATE todo
-		SET name = COALESCE(TRIM($1), name), description = COALESCE(TRIM($2), description), pending_at = COALESCE($3, pending_at), completed_at = COALESCE($4, completed_at)
+		SET name = COALESCE(TRIM($1), name), 
+		    description = COALESCE(TRIM($2), description), 
+		    pending_at = COALESCE($3, pending_at), 
+		    completed_at = COALESCE($4, completed_at)
 		WHERE id = $5 AND user_id = $6 AND archived_at IS NULL`
 
 	res, err := database.DB.Exec(query, updatedTodo.Name, updatedTodo.Description, updatedTodo.PendingAt, updatedTodo.CompletedAt, todoID, userID)

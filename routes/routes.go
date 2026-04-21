@@ -20,17 +20,20 @@ func SetUpRoutes() *gin.Engine {
 		})
 		v1.POST("/register", handler.RegisterUser)
 		v1.POST("/login", handler.LoginUser)
-		v1.PUT("/logout", handler.Logout)
-	}
-	{
-		todo := v1.Group("/todo")
-		todo.Use(middleware.AuthMiddleware())
+
+		auth := v1.Group("/")
+		auth.Use(middleware.AuthMiddleware())
+		auth.PUT("/logout", handler.Logout)
+
 		{
-			todo.POST("/", handler.CreateTodo)
-			todo.GET("/", handler.GetTodos)
-			todo.GET("/:todoID", handler.GetTodoByID)
-			todo.PUT("/:todoID", handler.UpdateTodo)
-			todo.DELETE("/:todoID", handler.DeleteTodo)
+			todo := auth.Group("/todo")
+			{
+				todo.POST("/", handler.CreateTodo)
+				todo.GET("/", handler.GetTodos)
+				todo.GET("/:todoID", handler.GetTodoByID)
+				todo.PUT("/:todoID", handler.UpdateTodo)
+				todo.DELETE("/:todoID", handler.DeleteTodo)
+			}
 		}
 	}
 
