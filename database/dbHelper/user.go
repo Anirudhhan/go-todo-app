@@ -2,6 +2,7 @@ package dbHelper
 
 import (
 	"todo-app/database"
+	"todo-app/models"
 )
 
 func IsUserExists(email string) (bool, error) {
@@ -19,9 +20,6 @@ func ValidateSession(sessionID string) (string, error) {
 
 	var userID string
 	err := database.DB.Get(&userID, query, sessionID)
-	//if err != nil {
-	//	return "", err
-	//}
 	return userID, err
 }
 
@@ -42,19 +40,16 @@ func CreateUserSession(userID string) (string, error) {
 	return sessionID, err
 }
 
-func GetUserIDAndHashedPassByEmail(email string) (string, string, error) {
+func GetUserIDAndHashedPassByEmail(email string) (models.LoginUserDetails, error) { //struct
 	query := `SELECT id, password
 			FROM users
 			WHERE email = TRIM(LOWER($1))
 			AND archived_at IS NULL`
 
-	var data struct {
-		UserID       string `db:"id"`
-		PasswordHash string `db:"password"`
-	}
+	var userDetails models.LoginUserDetails
 
-	err := database.DB.Get(&data, query, email)
-	return data.UserID, data.PasswordHash, err
+	err := database.DB.Get(&userDetails, query, email)
+	return userDetails, err
 }
 
 func ArchiveUserSession(sessionID string) error {

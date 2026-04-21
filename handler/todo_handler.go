@@ -59,12 +59,11 @@ func UpdateTodo(ctx *gin.Context) {
 	}
 
 	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodo); err != nil {
-		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
-			return
-		}
-
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
+		//if err.Error() == "todo not found" {
+		//	utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
+		//	return
+		//}
+		utils.ErrorResponse(ctx, http.StatusNotFound, err, "failed to update todo")
 		return
 	}
 
@@ -80,7 +79,7 @@ func DeleteTodo(ctx *gin.Context) {
 	err := dbHelper.DeleteTodo(todoID, userID)
 	if err != nil {
 		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
+			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found") //todo
 			return
 		}
 
@@ -99,11 +98,6 @@ func GetTodoByID(ctx *gin.Context) {
 
 	todo, err := dbHelper.GetTodoByID(todoID, userID)
 	if err != nil {
-		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
-			return
-		}
-
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to fetch todo")
 		return
 	}

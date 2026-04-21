@@ -11,7 +11,7 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		sessionID := ctx.GetHeader("session_id")
+		sessionID := ctx.GetHeader("Authorization")
 		if sessionID == "" {
 			utils.ErrorResponse(ctx, http.StatusUnauthorized, errors.New("invalid session"), "invalid session")
 			ctx.Abort()

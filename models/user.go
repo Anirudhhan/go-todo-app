@@ -17,6 +17,11 @@ type RegisterUser struct {
 	Password string `db:"password" json:"password" binding:"required,min=6,max=20"`
 }
 
+type LoginUserDetails struct {
+	UserID       string `db:"id"`
+	HashPassword string `db:"password"`
+}
+
 type LoginUser struct {
 	Email    string `db:"email" json:"email" binding:"required"`
 	Password string `db:"password" json:"password" binding:"required"`

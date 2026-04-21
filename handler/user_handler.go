@@ -25,7 +25,7 @@ func RegisterUser(ctx *gin.Context) {
 	}
 
 	if userExist {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("user with this email already exists"), "user with this email already exists")
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("user with this email already exist"), "user with this email already exist")
 		return
 	}
 
@@ -55,18 +55,18 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	userID, hashPassword, err := dbHelper.GetUserIDAndHashedPassByEmail(loginUser.Email)
+	userDetails, err := dbHelper.GetUserIDAndHashedPassByEmail(loginUser.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, "invalid credentials")
 		return
 	}
 
-	if hashErr := utils.CheckPasswordHash(loginUser.Password, hashPassword); hashErr != nil {
+	if hashErr := utils.CheckPasswordHash(loginUser.Password, userDetails.HashPassword); hashErr != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, hashErr, "invalid credentials")
 		return
 	}
 
-	sessionID, sessionErr := dbHelper.CreateUserSession(userID)
+	sessionID, sessionErr := dbHelper.CreateUserSession(userDetails.UserID)
 	if sessionErr != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, sessionErr, "internal server error")
 		return
