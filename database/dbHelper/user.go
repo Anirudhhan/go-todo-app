@@ -8,9 +8,9 @@ import (
 func IsUserExists(email string) (bool, error) {
 	query := `SELECT count(*) > 0 FROM users WHERE email = TRIM(LOWER($1)) AND archived_at IS NULL;`
 
-	var exists bool
-	err := database.DB.Get(&exists, query, email)
-	return exists, err
+	var exist bool
+	err := database.DB.Get(&exist, query, email)
+	return exist, err
 }
 
 func GetUserIDFromActiveSession(sessionID string) (string, error) {

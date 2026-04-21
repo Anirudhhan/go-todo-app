@@ -98,7 +98,7 @@ func GetAllTodos(userID string, status string) ([]models.Todo, error) {
 
 	query += " ORDER BY created_at DESC"
 
-	var todos []models.Todo
+	todos := make([]models.Todo, 0)
 	err := database.DB.Select(&todos, query, userID)
 
 	return todos, err

@@ -113,8 +113,8 @@ func GetAllTodos(ctx *gin.Context) {
 	status := ctx.Query("status")
 	userID := ctx.GetString("userID")
 
-	var todos []models.Todo
-	if status != "completed" && status != "pending" && status != "incomplete" {
+	todos := make([]models.Todo, 0)
+	if status != "" && status != "completed" && status != "pending" && status != "incomplete" {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid status")
 		return
 	}

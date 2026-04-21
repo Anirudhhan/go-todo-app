@@ -19,14 +19,14 @@ func RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	exists, err := dbHelper.IsUserExists(newUser.Email)
+	exist, err := dbHelper.IsUserExists(newUser.Email)
 	if err != nil {
 		fmt.Println(err.Error())
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	if exists {
+	if exist {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "user with this email already exists")
 		return
 	}
