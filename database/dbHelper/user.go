@@ -1,32 +1,29 @@
 package dbHelper
 
 import (
-	"time"
+	"errors"
 	"todo-app/database"
 )
 
 func IsUserExists(email string) (bool, error) {
 	query := `SELECT count(*) > 0 FROM users WHERE email = TRIM(LOWER($1)) AND archived_at IS NULL;`
 
-	var exist bool
-	err := database.DB.Get(&exist, query, email)
-	return exist, err
+	var userExist bool
+	err := database.DB.Get(&userExist, query, email)
+	return userExist, err
 }
 
-func GetUserIDFromActiveSession(sessionID string) (string, error) {
-	query := `
-		SELECT user_id 
+func ValidateSession(sessionID string) (string, error) {
+	query := `SELECT user_id 
 		FROM user_session 
-		WHERE id = $1 AND archived_at IS NULL
-	`
+		WHERE id = $1 AND archived_at IS NULL`
 
 	var userID string
 	err := database.DB.Get(&userID, query, sessionID)
-	if err != nil {
-		return "", err
-	}
-
-	return userID, nil
+	//if err != nil {
+	//	return "", err
+	//}
+	return userID, err
 }
 
 func RegisterUser(name string, email string, passwordHash string) (string, error) {
@@ -38,44 +35,57 @@ func RegisterUser(name string, email string, passwordHash string) (string, error
 	return userID, err
 }
 
-func CreateUserSession(userId string) (string, error) {
+func CreateUserSession(userID string) (string, error) {
 	query := `INSERT INTO user_session(user_id) VALUES ($1) RETURNING id`
 
-	var sessionId string
-	err := database.DB.Get(&sessionId, query, userId)
-	return sessionId, err
+	var sessionID string
+	err := database.DB.Get(&sessionID, query, userID)
+	return sessionID, err
 }
 
-func GetUserIDByEmail(email string) (string, string, error) {
-	query := `
-		SELECT id, password
-		FROM users
-		WHERE email = TRIM(LOWER($1))
-		AND archived_at IS NULL
-	`
+func GetUserIDAndHashedPassByEmail(email string) (string, string, error) {
+	query := `SELECT id, password
+			FROM users
+			WHERE email = TRIM(LOWER($1))
+			AND archived_at IS NULL`
 
-	var userID string
-	var passwordHash string
+	var data struct {
+		UserID       string `db:"id"`
+		PasswordHash string `db:"password"`
+	}
 
-	err := database.DB.QueryRow(query, email).Scan(&userID, &passwordHash)
-	return userID, passwordHash, err
+	err := database.DB.Get(&data, query, email)
+	return data.UserID, data.PasswordHash, err
 }
 
-func ArchiveUserSession(sessionId string) error {
+func ArchiveUserSession(sessionID string) error {
 	query := `UPDATE user_session SET archived_at = NOW() WHERE id = $1 AND archived_at IS NULL`
 
-	_, err := database.DB.Exec(query, sessionId)
-	return err
-}
-
-func IsSessionActive(sessionID string) (bool, error) {
-	query := `SELECT archived_at FROM user_session WHERE id = $1`
-
-	var archivedAt *time.Time
-	err := database.DB.Get(&archivedAt, query, sessionID)
-
+	res, err := database.DB.Exec(query, sessionID)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return archivedAt == nil, err
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errors.New("session inactive")
+	}
+
+	return nil
 }
+
+//func IsSessionActive(sessionID string) (bool, error) {
+//	query := `SELECT archived_at FROM user_session WHERE id = $1`
+//
+//	var archivedAt *time.Time
+//	err := database.DB.Get(&archivedAt, query, sessionID)
+//
+//	if err != nil {
+//		return false, err
+//	}
+//	return archivedAt == nil, err
+//}

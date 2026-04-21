@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,7 +22,8 @@ func CheckPasswordHash(password, hash string) error {
 	)
 }
 
-func ErrorResponse(ctx *gin.Context, status int, message string) {
+func ErrorResponse(ctx *gin.Context, status int, err error, message string) {
+	fmt.Println("error: ", err.Error())
 	ctx.JSON(status, gin.H{
 		"error": message,
 	})

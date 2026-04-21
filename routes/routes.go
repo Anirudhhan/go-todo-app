@@ -27,7 +27,7 @@ func SetUpRoutes() *gin.Engine {
 		todo.Use(middleware.AuthMiddleware())
 		{
 			todo.POST("/", handler.CreateTodo)
-			todo.GET("/", handler.GetAllTodos)
+			todo.GET("/", handler.GetTodos)
 			todo.GET("/:todoID", handler.GetTodoByID)
 			todo.PUT("/:todoID", handler.UpdateTodo)
 			todo.DELETE("/:todoID", handler.DeleteTodo)

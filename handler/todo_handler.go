@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 	"todo-app/database/dbHelper"
@@ -14,15 +14,14 @@ import (
 func CreateTodo(ctx *gin.Context) {
 	var createTodo models.CreateTodo
 	if err := ctx.ShouldBindJSON(&createTodo); err != nil {
-		fmt.Println(err.Error())
-		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
 	userID := ctx.GetString("userID")
 
 	if createTodo.PendingAt != nil && createTodo.PendingAt.Before(time.Now()) {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "previous date cannot be inserted")
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
 		return
 	}
 
@@ -33,8 +32,7 @@ func CreateTodo(ctx *gin.Context) {
 		createTodo.PendingAt,
 	)
 	if err != nil {
-		fmt.Println(err.Error())
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -51,18 +49,17 @@ func UpdateTodo(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 
 	if err := ctx.ShouldBindJSON(&updatedTodo); err != nil {
-		fmt.Println(err.Error())
-		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
 	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodo); err != nil {
 		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
 			return
 		}
 
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "failed to update todo")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
 		return
 	}
 
@@ -78,11 +75,11 @@ func DeleteTodo(ctx *gin.Context) {
 	err := dbHelper.DeleteTodo(todoID, userID)
 	if err != nil {
 		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
 			return
 		}
 
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "failed to update todo")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
 		return
 	}
 
@@ -98,32 +95,31 @@ func GetTodoByID(ctx *gin.Context) {
 	todo, err := dbHelper.GetTodoByID(todoID, userID)
 	if err != nil {
 		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "todo not found")
+			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
 			return
 		}
 
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "failed to update todo")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
 		return
 	}
 
 	ctx.JSON(http.StatusOK, todo)
 }
 
-func GetAllTodos(ctx *gin.Context) {
+func GetTodos(ctx *gin.Context) {
 	status := ctx.Query("status")
 	userID := ctx.GetString("userID")
 
 	todos := make([]models.Todo, 0)
 	if status != "" && status != "completed" && status != "pending" && status != "incomplete" {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid status")
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("invalid status"), "invalid status")
 		return
 	}
 
-	todos, err := dbHelper.GetAllTodos(userID, status)
+	todos, err := dbHelper.GetTodos(userID, status)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

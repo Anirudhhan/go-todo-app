@@ -80,7 +80,7 @@ func DeleteTodo(todoID string, userID string) error {
 	return nil
 }
 
-func GetAllTodos(userID string, status string) ([]models.Todo, error) {
+func GetTodos(userID string, status string) ([]models.Todo, error) {
 	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
 				FROM todo
 				WHERE user_id = $1 AND archived_at IS NULL`
