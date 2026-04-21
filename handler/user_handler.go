@@ -11,14 +11,14 @@ import (
 )
 
 func RegisterUser(ctx *gin.Context) {
-	var newUser models.RegisterUser
+	var registerUserRes models.RegisterUser
 
-	if err := ctx.ShouldBindJSON(&newUser); err != nil {
+	if err := ctx.ShouldBindJSON(&registerUserRes); err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
-	userExist, err := dbHelper.IsUserExists(newUser.Email)
+	userExist, err := dbHelper.IsUserExists(registerUserRes.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
@@ -29,13 +29,13 @@ func RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := utils.HashPassword(newUser.Password)
+	hashedPassword, err := utils.HashPassword(registerUserRes.Password)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
-	id, err := dbHelper.RegisterUser(newUser.Name, newUser.Email, hashedPassword)
+	id, err := dbHelper.RegisterUser(registerUserRes.Name, registerUserRes.Email, hashedPassword)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
@@ -48,20 +48,20 @@ func RegisterUser(ctx *gin.Context) {
 }
 
 func LoginUser(ctx *gin.Context) {
-	var loginUser models.LoginUser
+	var loginUserRes models.LoginUser
 
-	if bindErr := ctx.ShouldBindJSON(&loginUser); bindErr != nil {
+	if bindErr := ctx.ShouldBindJSON(&loginUserRes); bindErr != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, bindErr, bindErr.Error())
 		return
 	}
 
-	userDetails, err := dbHelper.GetUserIDAndHashedPassByEmail(loginUser.Email)
+	userDetails, err := dbHelper.GetUserIDAndHashedPassByEmail(loginUserRes.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, "invalid credentials")
 		return
 	}
 
-	if hashErr := utils.CheckPasswordHash(loginUser.Password, userDetails.HashPassword); hashErr != nil {
+	if hashErr := utils.CheckPasswordHash(loginUserRes.Password, userDetails.HashPassword); hashErr != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, hashErr, "invalid credentials")
 		return
 	}

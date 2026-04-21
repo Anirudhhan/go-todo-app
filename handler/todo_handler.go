@@ -12,24 +12,22 @@ import (
 )
 
 func CreateTodo(ctx *gin.Context) {
-	var createTodo models.CreateTodo
-	if err := ctx.ShouldBindJSON(&createTodo); err != nil {
+	var newTodoRes models.CreateTodo
+	if err := ctx.ShouldBindJSON(&newTodoRes); err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
 	userID := ctx.GetString("userID")
 
-	if createTodo.PendingAt != nil && createTodo.PendingAt.Before(time.Now()) {
+	if newTodoRes.PendingAt != nil && newTodoRes.PendingAt.Before(time.Now()) {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
 		return
 	}
 
 	todoID, err := dbHelper.CreateTodo(
 		userID,
-		createTodo.Name,
-		createTodo.Description,
-		createTodo.PendingAt,
+		newTodoRes,
 	)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
@@ -43,22 +41,22 @@ func CreateTodo(ctx *gin.Context) {
 }
 
 func UpdateTodo(ctx *gin.Context) {
-	var updatedTodo models.UpdateTodo
+	var updatedTodoRes models.UpdateTodo
 
 	todoID := ctx.Param("todoID")
 	userID := ctx.GetString("userID")
 
-	if err := ctx.ShouldBindJSON(&updatedTodo); err != nil {
+	if err := ctx.ShouldBindJSON(&updatedTodoRes); err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
-	if updatedTodo.PendingAt != nil && updatedTodo.PendingAt.Before(time.Now()) {
+	if updatedTodoRes.PendingAt != nil && updatedTodoRes.PendingAt.Before(time.Now()) {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
 		return
 	}
 
-	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodo); err != nil {
+	if err := dbHelper.UpdateTodo(todoID, userID, updatedTodoRes); err != nil {
 		//if err.Error() == "todo not found" {
 		//	utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found")
 		//	return
@@ -78,12 +76,12 @@ func DeleteTodo(ctx *gin.Context) {
 
 	err := dbHelper.DeleteTodo(todoID, userID)
 	if err != nil {
-		if err.Error() == "todo not found" {
-			utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found") //todo
-			return
-		}
-
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to update todo")
+		//if err.Error() == "todo not found" {
+		//	utils.ErrorResponse(ctx, http.StatusNotFound, err, "todo not found") //todo
+		//	return
+		//}
+		//
+		utils.ErrorResponse(ctx, http.StatusNotFound, err, "failed to delete todo")
 		return
 	}
 

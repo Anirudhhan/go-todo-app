@@ -40,7 +40,7 @@ func CreateUserSession(userID string) (string, error) {
 	return sessionID, err
 }
 
-func GetUserIDAndHashedPassByEmail(email string) (models.LoginUserDetails, error) { //struct
+func GetUserIDAndHashedPassByEmail(email string) (models.LoginUserDetails, error) {
 	query := `SELECT id, password
 			FROM users
 			WHERE email = TRIM(LOWER($1))

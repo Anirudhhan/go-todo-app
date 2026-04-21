@@ -2,18 +2,17 @@ package dbHelper
 
 import (
 	"errors"
-	"time"
 	"todo-app/database"
 	"todo-app/models"
 )
 
-func CreateTodo(userID string, name string, description string, pendingAt *time.Time) (string, error) {
+func CreateTodo(userID string, newTodo models.CreateTodo) (string, error) {
 	query := `INSERT INTO todos(user_id, name, description, pending_at)
 				VALUES ($1, TRIM($2), $3, $4)
 				RETURNING id`
 
 	var todoID string
-	err := database.DB.Get(&todoID, query, userID, name, description, pendingAt)
+	err := database.DB.Get(&todoID, query, userID, newTodo.Name, newTodo.Description, newTodo.PendingAt)
 
 	return todoID, err
 }
