@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRoutes() *gin.Engine {
-	routes := gin.Default()
-	v1 := routes.Group("v1")
+func SetupRoutes() *gin.Engine {
+	router := gin.Default()
+	v1 := router.Group("v1")
 
 	{
 		v1.GET("/health", func(ctx *gin.Context) {
@@ -37,5 +37,5 @@ func SetUpRoutes() *gin.Engine {
 		}
 	}
 
-	return routes
+	return router
 }

@@ -16,11 +16,13 @@ func main() {
 		database.SSLMode(database.SSLModeDisable),
 	)
 
-	srv := routes.SetUpRoutes()
-
-	srv.Run()
-
 	if err != nil {
+		panic(err)
+	}
+
+	srv := routes.SetupRoutes()
+
+	if err := srv.Run(":8080"); err != nil {
 		panic(err)
 	}
 }

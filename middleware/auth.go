@@ -18,7 +18,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID, err := dbHelper.ValidateSession(sessionID)
+		userID, err := dbHelper.GetUserIDByActiveSession(sessionID)
 		if err != nil {
 			utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid session")
 			ctx.Abort()

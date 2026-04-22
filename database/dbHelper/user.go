@@ -5,15 +5,16 @@ import (
 	"todo-app/models"
 )
 
-func IsUserExists(email string) (bool, error) {
-	query := `SELECT count(*) > 0 FROM users WHERE email = TRIM(LOWER($1)) AND archived_at IS NULL;`
+func UserExists(email string) (bool, error) {
+	query := `SELECT EXISTS( SELECT 1 FROM users WHERE 
+    			email = TRIM(LOWER($1)) AND archived_at IS NULL);`
 
 	var userExist bool
 	err := database.DB.Get(&userExist, query, email)
 	return userExist, err
 }
 
-func ValidateSession(sessionID string) (string, error) {
+func GetUserIDByActiveSession(sessionID string) (string, error) {
 	query := `SELECT user_id 
 		FROM user_session 
 		WHERE id = $1 AND archived_at IS NULL`
@@ -40,7 +41,7 @@ func CreateUserSession(userID string) (string, error) {
 	return sessionID, err
 }
 
-func GetUserIDAndHashedPassByEmail(email string) (models.LoginUserDetails, error) {
+func GetLoginDetailsByEmail(email string) (models.LoginUserDetails, error) {
 	query := `SELECT id, password
 			FROM users
 			WHERE email = TRIM(LOWER($1))

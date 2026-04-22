@@ -11,31 +11,31 @@ import (
 )
 
 func RegisterUser(ctx *gin.Context) {
-	var registerUserRes models.RegisterUser
+	var registerUserReq models.RegisterUser
 
-	if err := ctx.ShouldBindJSON(&registerUserRes); err != nil {
+	if err := ctx.ShouldBindJSON(&registerUserReq); err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
-	userExist, err := dbHelper.IsUserExists(registerUserRes.Email)
+	userExist, err := dbHelper.UserExists(registerUserReq.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
 	if userExist {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("user with this email already exist"), "user with this email already exist")
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("user with this email already exists"), "user with this email already exists")
 		return
 	}
 
-	hashedPassword, err := utils.HashPassword(registerUserRes.Password)
+	hashedPassword, err := utils.HashPassword(registerUserReq.Password)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
-	id, err := dbHelper.RegisterUser(registerUserRes.Name, registerUserRes.Email, hashedPassword)
+	userID, err := dbHelper.RegisterUser(registerUserReq.Name, registerUserReq.Email, hashedPassword)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
@@ -43,37 +43,37 @@ func RegisterUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "user registered successfully",
-		"id":      id,
+		"user_id": userID,
 	})
 }
 
 func LoginUser(ctx *gin.Context) {
-	var loginUserRes models.LoginUser
+	var loginUserReq models.LoginUser
 
-	if bindErr := ctx.ShouldBindJSON(&loginUserRes); bindErr != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, bindErr, bindErr.Error())
+	if err := ctx.ShouldBindJSON(&loginUserReq); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
-	userDetails, err := dbHelper.GetUserIDAndHashedPassByEmail(loginUserRes.Email)
+	userDetails, err := dbHelper.GetLoginDetailsByEmail(loginUserReq.Email)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, err, "invalid credentials")
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid credentials")
 		return
 	}
 
-	if hashErr := utils.CheckPasswordHash(loginUserRes.Password, userDetails.HashPassword); hashErr != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, hashErr, "invalid credentials")
+	if err := utils.CheckPasswordHash(loginUserReq.Password, userDetails.HashPassword); err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid credentials")
 		return
 	}
 
-	sessionID, sessionErr := dbHelper.CreateUserSession(userDetails.UserID)
-	if sessionErr != nil {
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, sessionErr, "internal server error")
+	sessionID, err := dbHelper.CreateUserSession(userDetails.UserID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"sessionId": sessionID,
+		"session_id": sessionID,
 	})
 }
 

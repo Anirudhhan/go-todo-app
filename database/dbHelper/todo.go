@@ -8,7 +8,7 @@ import (
 
 func CreateTodo(userID string, newTodo models.CreateTodo) (string, error) {
 	query := `INSERT INTO todos(user_id, name, description, pending_at)
-				VALUES ($1, TRIM($2), $3, $4)
+				VALUES ($1, $2, $3, $4)
 				RETURNING id`
 
 	var todoID string
@@ -31,7 +31,7 @@ func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 func UpdateTodo(todoID string, userID string, updatedTodo models.UpdateTodo) error {
 	query := `UPDATE todos
 		SET name = COALESCE(TRIM($1), name), 
-		    description = COALESCE(TRIM($2), description), 
+		    description = COALESCE($2, description), 
 		    pending_at = COALESCE($3, pending_at), 
 		    completed_at = COALESCE($4, completed_at)  --todo
 		WHERE id = $5 AND user_id = $6 AND archived_at IS NULL`
