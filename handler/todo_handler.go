@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 	"todo-app/database/dbHelper"
 	"todo-app/models"
@@ -104,20 +105,35 @@ func GetTodoByID(ctx *gin.Context) {
 }
 
 func GetTodos(ctx *gin.Context) {
-	status := ctx.Query("status")
 	userID := ctx.GetString("userID")
+
+	status := ctx.Query("status")
+	searchValue := ctx.Query("search")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
 
 	if status != "" && status != "completed" && status != "pending" && status != "incomplete" {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("invalid status"), "invalid status")
 		return
 	}
 
-	todos, err := dbHelper.GetTodos(userID, status)
+	todos, err := dbHelper.GetTodos(userID, status, searchValue, page, limit)
 
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, todos)
+	ctx.JSON(http.StatusOK, gin.H{
+		"page":  page,
+		"limit": limit,
+		"todos": todos,
+	})
 }

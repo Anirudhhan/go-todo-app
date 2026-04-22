@@ -74,26 +74,73 @@ func DeleteTodo(todoID string, userID string) error {
 	return nil
 }
 
-func GetTodos(userID string, status string) ([]models.Todo, error) {
-	query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
-				FROM todos
-				WHERE user_id = $1 AND archived_at IS NULL`
+func GetTodos(userID, status, search string, page, limit int) ([]models.Todo, error) {
+	//query := `SELECT id, user_id, name, description, pending_at, completed_at, created_at, archived_at
+	//		  FROM todos
+	//		  WHERE user_id = $1 AND archived_at IS NULL`
+	//
+	//args := []any{userID}
+	//argPos := 2
+	//
+	//switch status {
+	//case "completed":
+	//	query += " AND completed_at IS NOT NULL"
+	//case "pending":
+	//	query += ` AND completed_at IS NULL AND (pending_at IS NULL OR pending_at > NOW())`
+	//case "incomplete":
+	//	query += ` AND completed_at IS NULL AND pending_at IS NOT NULL AND pending_at < NOW()`
+	//}
+	//
+	//if search != "" {
+	//	query += ` AND (name ILIKE % || $2 || % OR description ILIKE % || $2 || %)`
+	//	args = append(args, search)
+	//	argPos++
+	//}
+	//
+	//offset := (page - 1) * limit
+	//
+	//query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", argPos, argPos+1)
+	//
+	//args = append(args, limit, offset)
+	query := `SELECT id,
+		       user_id,
+		       name,
+		       description,
+		       pending_at,
+		       completed_at,
+		       created_at,
+		       archived_at
+		FROM todos
+		WHERE user_id = $1
+		  AND archived_at IS NULL
+		  AND (
+		        $2 = ''
+		        OR (
+		            $2 = 'completed' AND completed_at IS NOT NULL
+		        )
+		        OR (
+		            $2 = 'pending'
+		            AND completed_at IS NULL
+		            AND (pending_at IS NULL OR pending_at > NOW())
+		        )
+		        OR (
+		            $2 = 'incomplete'
+		            AND completed_at IS NULL
+		            AND pending_at IS NOT NULL
+		            AND pending_at < NOW()
+		        )
+		  )
+		  AND (
+		        $3 = ''
+		        OR name ILIKE '%' || $3 || '%'
+		        OR description ILIKE '%' || $3 || '%'
+		  )
+		ORDER BY created_at DESC LIMIT $4 OFFSET $5`
 
-	switch status {
-	case "completed":
-		query += " AND completed_at IS NOT NULL"
-
-	case "pending":
-		query += ` AND completed_at IS NULL AND (pending_at IS NULL OR pending_at > NOW())`
-
-	case "incomplete":
-		query += ` AND completed_at IS NULL AND pending_at IS NOT NULL AND pending_at < NOW()`
-	}
-
-	query += " ORDER BY created_at DESC"
+	offset := (page - 1) * limit
 
 	todos := make([]models.Todo, 0)
-	err := database.DB.Select(&todos, query, userID)
+	err := database.DB.Select(&todos, query, userID, status, search, limit, offset)
 
 	return todos, err
 }
