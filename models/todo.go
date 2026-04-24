@@ -2,6 +2,13 @@ package models
 
 import "time"
 
+// status
+const (
+	Completed  = "completed"
+	Pending    = "pending"
+	Incomplete = "incomplete"
+)
+
 type Todo struct {
 	ID          string     `db:"id" json:"id"`
 	UserID      string     `db:"user_id" json:"user_id"`

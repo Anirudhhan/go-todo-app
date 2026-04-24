@@ -119,7 +119,7 @@ func GetTodos(ctx *gin.Context) {
 		limit = 10
 	}
 
-	if status != "" && status != "completed" && status != "pending" && status != "incomplete" {
+	if status != "" && status != models.Completed && status != models.Pending && status != models.Incomplete {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("invalid status"), "invalid status")
 		return
 	}
