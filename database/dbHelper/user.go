@@ -5,9 +5,9 @@ import (
 	"todo-app/models"
 )
 
-func UserExists(email string) (bool, error) {
-	query := `SELECT EXISTS( SELECT 1 FROM users WHERE 
-    			email = TRIM(LOWER($1)) AND archived_at IS NULL);`
+func IsUserExist(email string) (bool, error) {
+	query := `SELECT COUNT(*) FROM users
+				WHERE email = TRIM(LOWER($1)) AND archived_at IS NULL AND suspended_at IS NULL;`
 
 	var userExist bool
 	err := database.DB.Get(&userExist, query, email)
@@ -17,7 +17,7 @@ func UserExists(email string) (bool, error) {
 func GetUserIDByActiveSession(sessionID string) (string, error) {
 	query := `SELECT user_id 
 		FROM user_session 
-		WHERE id = $1 AND archived_at IS NULL`
+		WHERE id = $1 AND archived_at IS NULL AND suspended_at IS NULL`
 
 	var userID string
 	err := database.DB.Get(&userID, query, sessionID)
@@ -45,7 +45,7 @@ func GetLoginDetailsByEmail(email string) (models.LoginUserDetails, error) {
 	query := `SELECT id, password
 			FROM users
 			WHERE email = TRIM(LOWER($1))
-			AND archived_at IS NULL`
+			AND archived_at IS NULL AND suspended_at IS NULL`
 
 	var userDetails models.LoginUserDetails
 
@@ -54,20 +54,8 @@ func GetLoginDetailsByEmail(email string) (models.LoginUserDetails, error) {
 }
 
 func ArchiveUserSession(sessionID string) error {
-	query := `UPDATE user_session SET archived_at = NOW() WHERE id = $1 AND archived_at IS NULL`
+	query := `UPDATE user_session SET archived_at = NOW() WHERE id = $1 AND archived_at IS NULL AND suspended_at IS NULL`
 
 	_, err := database.DB.Exec(query, sessionID)
 	return err
 }
-
-//func IsSessionActive(sessionID string) (bool, error) {
-//	query := `SELECT archived_at FROM user_session WHERE id = $1`
-//
-//	var archivedAt *time.Time
-//	err := database.DB.Get(&archivedAt, query, sessionID)
-//
-//	if err != nil {
-//		return false, err
-//	}
-//	return archivedAt == nil, err
-//}

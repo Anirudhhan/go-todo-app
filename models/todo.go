@@ -10,7 +10,7 @@ type Todo struct {
 	PendingAt   *time.Time `db:"pending_at" json:"pending_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
-	ArchivedAt  *time.Time `db:"archived_at" json:"archived_at"`
+	//ArchivedAt  *time.Time `db:"archived_at" json:"archived_at"`
 }
 
 type CreateTodo struct {

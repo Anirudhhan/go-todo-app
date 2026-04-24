@@ -18,14 +18,14 @@ func RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	userExist, err := dbHelper.UserExists(registerUserReq.Email)
+	userExist, err := dbHelper.IsUserExist(registerUserReq.Email)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
 	if userExist {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("user with this email already exists"), "user with this email already exists")
+		utils.ErrorResponse(ctx, http.StatusConflict, errors.New("user with this email already exists"), "user with this email already exists")
 		return
 	}
 
@@ -57,12 +57,12 @@ func LoginUser(ctx *gin.Context) {
 
 	userDetails, err := dbHelper.GetLoginDetailsByEmail(loginUserReq.Email)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid credentials")
+		utils.ErrorResponse(ctx, http.StatusForbidden, err, "invalid credentials")
 		return
 	}
 
 	if err := utils.CheckPasswordHash(loginUserReq.Password, userDetails.HashPassword); err != nil {
-		utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid credentials")
+		utils.ErrorResponse(ctx, http.StatusForbidden, err, "invalid credentials")
 		return
 	}
 
