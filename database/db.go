@@ -64,3 +64,22 @@ func migrateUp(db *sqlx.DB) error {
 	fmt.Println("Migrations applied successfully")
 	return nil
 }
+
+func Tx(fn func(tx *sqlx.Tx) error) (err error) {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+
+		err = tx.Commit()
+	}()
+
+	err = fn(tx)
+	return
+}

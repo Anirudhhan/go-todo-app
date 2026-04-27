@@ -72,8 +72,14 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
+	accessToken, err := utils.GenerateAccessToken(userDetails.UserID, sessionID, userDetails.Role)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"session_id": sessionID,
+		"token": accessToken,
 	})
 }
 
@@ -88,5 +94,34 @@ func Logout(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user logged out successfully",
+	})
+}
+
+func RefreshToken(ctx *gin.Context) {
+	sessionID := ctx.GetHeader("sessionID")
+
+	if sessionID == "" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, errors.New("missing session"), "unauthorized")
+		return
+	}
+
+	userDetails, err := dbHelper.GetUserDetailsByActiveSession(sessionID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, err, "invalid session")
+		return
+	}
+
+	accessToken, err := utils.GenerateAccessToken(
+		userDetails.UserID,
+		sessionID,
+		userDetails.Role,
+	)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to generate token")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"token": accessToken,
 	})
 }

@@ -104,7 +104,7 @@ func GetTodoByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, todo)
 }
 
-func GetTodos(ctx *gin.Context) {
+func GetTodosByUserID(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 
 	status := ctx.Query("status")
@@ -124,7 +124,7 @@ func GetTodos(ctx *gin.Context) {
 		return
 	}
 
-	todos, err := dbHelper.GetTodos(userID, status, searchValue, page, limit)
+	todos, err := dbHelper.GetTodosByUserID(userID, status, searchValue, page, limit)
 
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")

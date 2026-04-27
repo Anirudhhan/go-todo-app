@@ -17,7 +17,7 @@ func IsUserExist(email string) (bool, error) {
 func GetUserIDByActiveSession(sessionID string) (string, error) {
 	query := `SELECT user_id 
 		FROM user_session 
-		WHERE id = $1 AND archived_at IS NULL AND suspended_at IS NULL`
+		WHERE id = $1 AND archived_at IS NULL`
 
 	var userID string
 	err := database.DB.Get(&userID, query, sessionID)
@@ -42,7 +42,7 @@ func CreateUserSession(userID string) (string, error) {
 }
 
 func GetLoginDetailsByEmail(email string) (models.LoginUserDetails, error) {
-	query := `SELECT id, password
+	query := `SELECT id, password, role
 			FROM users
 			WHERE email = TRIM(LOWER($1))
 			AND archived_at IS NULL AND suspended_at IS NULL`
@@ -58,4 +58,21 @@ func ArchiveUserSession(sessionID string) error {
 
 	_, err := database.DB.Exec(query, sessionID)
 	return err
+}
+
+func GetUserDetailsByActiveSession(sessionID string) (models.GetUserDetailsByActiveSessionResult, error) {
+	query := `
+		SELECT u.id, u.role
+		FROM user_session us
+		JOIN users u ON u.id = us.user_id
+		WHERE us.id = $1
+		  AND us.archived_at IS NULL
+		  AND u.archived_at IS NULL
+		  AND u.suspended_at IS NULL
+	`
+
+	var result models.GetUserDetailsByActiveSessionResult
+	err := database.DB.Get(&result, query, sessionID)
+
+	return result, err
 }

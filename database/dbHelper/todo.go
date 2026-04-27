@@ -74,14 +74,14 @@ func DeleteTodo(todoID string, userID string) error {
 	return nil
 }
 
-func GetTodos(userID, status, search string, page, limit int) ([]models.Todo, error) {
+func GetTodosByUserID(userID, status, search string, page, limit int) ([]models.Todo, error) {
 	query := `SELECT id,
 		       user_id,
 		       name,
 		       description,
 		       pending_at,
 		       completed_at,
-		       created_at,
+		       created_at
 		FROM todos
 		WHERE user_id = $1
 		  AND archived_at IS NULL
