@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"todo-app/database/dbHelper"
+	"todo-app/models"
 	"todo-app/utils"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +51,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 func AdminAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if ctx.GetString("role") != "admin" {
+		if ctx.GetString("role") != models.AdminRole {
 			utils.ErrorResponse(ctx, http.StatusForbidden, errors.New("forbidden"), "forbidden")
 			ctx.Abort()
 			return

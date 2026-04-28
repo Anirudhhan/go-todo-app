@@ -6,6 +6,11 @@ import (
 	"todo-app/models"
 )
 
+const (
+	UserNotFound = "user not found"
+	TodoNotFound = "todo not found"
+)
+
 func CreateTodo(userID string, newTodo models.CreateTodo) (string, error) {
 	query := `INSERT INTO todos(user_id, name, description, pending_at)
 				VALUES ($1, $2, $3, $4)
@@ -48,7 +53,7 @@ func UpdateTodo(todoID string, userID string, updatedTodo models.UpdateTodo) err
 	}
 
 	if rows == 0 {
-		return errors.New("todo not found")
+		return errors.New(TodoNotFound)
 	}
 
 	return nil
@@ -68,7 +73,7 @@ func DeleteTodo(todoID string, userID string) error {
 	}
 
 	if rows == 0 {
-		return errors.New("todo not found")
+		return errors.New(TodoNotFound)
 	}
 
 	return nil
@@ -104,8 +109,8 @@ func GetTodosByUserID(userID, status, search string, page, limit int) ([]models.
 		  )
 		  AND (
 		        $3 = ''
-		        OR name ILIKE '%' || $3 || '%'
-		        OR description ILIKE '%' || $3 || '%'
+		        OR name ILIKE '%' || TRIM($3) || '%'
+		        OR description ILIKE '%' || TRIM($3) || '%'
 		  )
 		ORDER BY created_at DESC LIMIT $4 OFFSET $5`
 

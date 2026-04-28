@@ -13,17 +13,33 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func GetAllUsers(ctx *gin.Context) {
-	users, err := dbHelper.GetAllUsers()
+func GetAllUsersAdmin(ctx *gin.Context) {
+	searchValue := ctx.Query("search")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	users, err := dbHelper.GetAllUsers(searchValue, limit, page)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, gin.H{
+		"page":  page,
+		"limit": limit,
+		"total": len(users),
+		"users": users,
+	})
 }
 
-func GetTodos(ctx *gin.Context) {
+func GetTodosAdmin(ctx *gin.Context) {
 
 	status := ctx.Query("status")
 	searchValue := ctx.Query("search")
@@ -57,7 +73,7 @@ func GetTodos(ctx *gin.Context) {
 	})
 }
 
-func UpdateUserSuspension(ctx *gin.Context) {
+func UpdateUserSuspensionAdmin(ctx *gin.Context) {
 	userID := ctx.Param("userID")
 	var updateSuspensionRequest struct {
 		Suspended bool `json:"suspended"`
@@ -97,3 +113,29 @@ func UpdateUserSuspension(ctx *gin.Context) {
 		"message": "user suspension updated successfully",
 	})
 }
+
+//func CreateTodoAdmin(ctx *gin.Context) {
+//	var newTodoReq models.CreateTodo
+//	if err := ctx.ShouldBindJSON(&newTodoReq); err != nil {
+//		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
+//		return
+//	}
+//
+//	userID := ctx.Param("userID")
+//
+//	if newTodoReq.PendingAt != nil && newTodoReq.PendingAt.Before(time.Now()) {
+//		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
+//		return
+//	}
+//
+//	todoID, err := dbHelper.CreateTodo(userID, newTodoReq)
+//	if err != nil {
+//		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusCreated, gin.H{
+//		"message": "new todo created successfully",
+//		"todo_id": todoID,
+//	})
+//}

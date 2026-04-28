@@ -20,7 +20,7 @@ func SetupRoutes() *gin.Engine {
 		})
 		v1.POST("/register", handler.RegisterUser)
 		v1.POST("/login", handler.LoginUser)
-		v1.GET("/refresh", handler.RefreshToken)
+		v1.GET("/ ", handler.RefreshToken)
 
 		auth := v1.Group("/")
 		auth.Use(middleware.AuthMiddleware())
@@ -30,7 +30,7 @@ func SetupRoutes() *gin.Engine {
 			todo := auth.Group("/todo")
 			{
 				todo.POST("/", handler.CreateTodo)
-				todo.GET("/", handler.GetTodosByUserID)
+				todo.GET("/", handler.GetTodos)
 				todo.GET("/:todoID", handler.GetTodoByID)
 				todo.PUT("/:todoID", handler.UpdateTodo)
 				todo.DELETE("/:todoID", handler.DeleteTodo)
@@ -39,9 +39,10 @@ func SetupRoutes() *gin.Engine {
 			admin := auth.Group("/admin")
 			admin.Use(middleware.AdminAuthMiddleware())
 			{
-				admin.GET("/users", handler.GetAllUsers)
-				admin.GET("/todos", handler.GetTodos)
-				admin.POST("/user/:userID", handler.UpdateUserSuspension)
+				admin.GET("/users", handler.GetAllUsersAdmin)
+				admin.GET("/todos", handler.GetTodosAdmin)
+				admin.POST("/user/:userID", handler.UpdateUserSuspensionAdmin)
+				//admin.POST("/todo/:userID", handler.CreateTodoAdmin)
 			}
 		}
 	}

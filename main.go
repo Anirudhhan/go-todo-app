@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"todo-app/database"
 	"todo-app/routes"
@@ -23,7 +24,7 @@ func main() {
 
 	secret, exists := os.LookupEnv("ACCESS_SECRET")
 	if !exists || secret == "" {
-		panic("ACCESS_SECRET is not set")
+		log.Fatal("ACCESS_SECRET is not set")
 	}
 
 	srv := routes.SetupRoutes()

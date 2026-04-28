@@ -73,7 +73,10 @@ func Tx(fn func(tx *sqlx.Tx) error) (err error) {
 
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return
+			}
 			return
 		}
 

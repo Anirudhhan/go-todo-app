@@ -9,12 +9,19 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func GetAllUsers() ([]models.UserResult, error) {
+func GetAllUsers(search string, limit int, page int) ([]models.UserResult, error) {
 	query := `SELECT id, name, email, created_at, role, archived_at, suspended_at
-				FROM users ORDER BY created_at DESC`
+				FROM users
+				WHERE (
+		        $1 = ''
+		        OR name ILIKE '%' || trim($1) || '%'
+		        OR email ILIKE '%' || trim($1) || '%'
+		  		)
+				ORDER BY created_at DESC LIMIT $2 OFFSET $3`
 
+	offset := (page - 1) * limit
 	users := make([]models.UserResult, 0)
-	err := database.DB.Select(&users, query)
+	err := database.DB.Select(&users, query, search, limit, offset)
 
 	return users, err
 }
@@ -48,8 +55,8 @@ func GetTodos(status string, search string, page, limit int) ([]models.Todo, err
 		  )
 		  AND (
 		        $2 = ''
-		        OR name ILIKE '%' || $2 || '%'
-		        OR description ILIKE '%' || $2 || '%'
+		        OR name ILIKE '%' || TRIM($2) || '%'
+		        OR description ILIKE '%' || TRIM($2) || '%'
 		  )
 		ORDER BY created_at DESC LIMIT $3 OFFSET $4`
 
@@ -84,7 +91,7 @@ func UpdateUserSuspension(tx *sqlx.Tx, userID string, suspended bool) error {
 	}
 
 	if rows == 0 {
-		return errors.New("user not found")
+		return errors.New(UserNotFound)
 	}
 
 	return nil

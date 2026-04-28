@@ -7,6 +7,8 @@ const (
 	Completed  = "completed"
 	Pending    = "pending"
 	Incomplete = "incomplete"
+	AdminRole  = "admin"
+	//UserRole   = "user"
 )
 
 type Todo struct {
