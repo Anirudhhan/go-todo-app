@@ -34,3 +34,9 @@ type UpdateTodo struct {
 	PendingAt   *time.Time `db:"pending_at" json:"pending_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
 }
+
+type CreateTodoForAllReq struct {
+	Name        string     `json:"name" binding:"required"`
+	Description string     `json:"description"`
+	PendingAt   *time.Time `json:"pending_at"`
+}

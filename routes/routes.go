@@ -42,7 +42,9 @@ func SetupRoutes() *gin.Engine {
 				admin.GET("/users", handler.GetAllUsersAdmin)
 				admin.GET("/todos", handler.GetTodosAdmin)
 				admin.POST("/user/:userID", handler.UpdateUserSuspensionAdmin)
-				//admin.POST("/todo/:userID", handler.CreateTodoAdmin)
+				admin.POST("/todo/:userID", handler.CreateTodoAdmin)
+				admin.POST("/todos/all", handler.CreateTodoForAll)
+
 			}
 		}
 	}

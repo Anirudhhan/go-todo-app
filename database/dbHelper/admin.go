@@ -108,3 +108,14 @@ func ArchiveUserSessions(tx *sqlx.Tx, userID string) error {
 	_, err := tx.Exec(query, time.Now(), userID)
 	return err
 }
+
+func CreateTodoForAllUsers(tx *sqlx.Tx, name string, description string, pendingAt *time.Time) error {
+	query := `INSERT INTO todos (user_id, name, description, pending_at)
+		SELECT id, $1, $2, $3
+		FROM users
+		WHERE archived_at IS NULL
+		  AND suspended_at IS NULL`
+
+	_, err := tx.Exec(query, name, description, pendingAt)
+	return err
+}

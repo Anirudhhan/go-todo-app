@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 	"todo-app/database"
 	"todo-app/database/dbHelper"
 	"todo-app/models"
@@ -114,28 +115,60 @@ func UpdateUserSuspensionAdmin(ctx *gin.Context) {
 	})
 }
 
-//func CreateTodoAdmin(ctx *gin.Context) {
-//	var newTodoReq models.CreateTodo
-//	if err := ctx.ShouldBindJSON(&newTodoReq); err != nil {
-//		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
-//		return
-//	}
-//
-//	userID := ctx.Param("userID")
-//
-//	if newTodoReq.PendingAt != nil && newTodoReq.PendingAt.Before(time.Now()) {
-//		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
-//		return
-//	}
-//
-//	todoID, err := dbHelper.CreateTodo(userID, newTodoReq)
-//	if err != nil {
-//		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
-//		return
-//	}
-//
-//	ctx.JSON(http.StatusCreated, gin.H{
-//		"message": "new todo created successfully",
-//		"todo_id": todoID,
-//	})
-//}
+func CreateTodoAdmin(ctx *gin.Context) {
+	var newTodoReq models.CreateTodo
+	if err := ctx.ShouldBindJSON(&newTodoReq); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
+		return
+	}
+
+	userID := ctx.Param("userID")
+
+	if newTodoReq.PendingAt != nil && newTodoReq.PendingAt.Before(time.Now()) {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("previous date cannot be inserted"), "previous date cannot be inserted")
+		return
+	}
+
+	todoID, err := dbHelper.CreateTodo(userID, newTodoReq)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "internal server error")
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"message": "new todo created successfully",
+		"todo_id": todoID,
+	})
+}
+
+func CreateTodoForAll(ctx *gin.Context) {
+	var req models.CreateTodoForAllReq
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err, err.Error())
+		return
+	}
+
+	if req.PendingAt != nil && req.PendingAt.Before(time.Now()) {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, errors.New("invalid date"), "pending date cannot be in past")
+		return
+	}
+
+	err := database.Tx(func(tx *sqlx.Tx) error {
+		return dbHelper.CreateTodoForAllUsers(
+			tx,
+			req.Name,
+			req.Description,
+			req.PendingAt,
+		)
+	})
+
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, err, "failed to create todos")
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"message": "todo created for all users",
+	})
+}
